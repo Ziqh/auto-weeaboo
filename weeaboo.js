@@ -1093,9 +1093,10 @@ websrv.get('/ai',(req,res) => {
 	var htmlString = '<!DOCTYPE html>';
 	htmlString += '<head><link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"><title>Auto-Weeaboo Options Panel</title></head>';
 	htmlString += '<body><div style="max-width:500px;padding:20px;">';
-	htmlString += 'Today I feel: <b>' + ai_setting + '</b>';
+	htmlString += 'Today I feel: <b>' + ai_setting + '</b><br><br>';
 	htmlString += '<br><br><a href="/ai/sassy">Sassy</a> <a href="/ai/kind">Kind</a> <a href="/ai/mean">Mean</a> <a href="/ai/shy">Shy</a> <a href="/ai/stronk">Stronk</a> <a href="/ai/flirty">Flirty</a> <a href="/ai/dumb">Dumb</a>';
     //htmlString += '<br><select onchange="if(this.value) window.location.href=this.value" required><option value="" selected>Select…</option><option value="/ai/sassy">Sassy</option><option value="/ai/kind">Kind</option><option value="/ai/mean">Mean</option><option value="/ai/shy">Shy</option><option value="/ai/stronk">Stronk</option><option value="/ai/flirty">Flirty</option><option value="/ai/dumb">Dumb</option></select>';
+	//config.personalities.forEach(personality => htmlString+=`<a href="/ai/${personality}">${personality}</a> `)
 	htmlString += '</div></body>';
 	res.send(htmlString);
 	
@@ -1117,47 +1118,27 @@ function getShowDetails(showID) {return db.prepare('SELECT * FROM shows WHERE sh
 //Get prompt - prefix only
 function getPromptPrefix()
 {
-	if(ai_setting == 'sassy') return prompts.prefix_sassy;
-	else if(ai_setting == 'kind') return prompts.prefix_kind;
-	else if(ai_setting == 'mean') return prompts.prefix_mean;
-	else if(ai_setting == 'shy') return prompts.prefix_shy;
-	else if(ai_setting == 'stronk') return prompts.prefix_stronk;
-	else if(ai_setting == 'flirty') return prompts.prefix_flirty;
+	if (typeof(prompts['prefix_' + ai_setting]) == 'undefined')
+		return'You are a confused AI girl who feels like something has gone wrong. ';
 	else
-	{
-		console.log('Invalid personality type: ' + ai_setting);
-		return 'You are a confused AI girl who feels like something has gone wrong. ';
-	}
+		return prompts['prefix_' + ai_setting];
 }
 //Get prompt - rate show
 function getPromptShow(user, show, comment, rating)
 {
-	if(ai_setting == 'sassy') return prompts.prefix_sassy + prompts.rateshow_sassy.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'kind') return prompts.prefix_kind + prompts.rateshow_kind.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'mean') return prompts.prefix_mean + prompts.rateshow_mean.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'shy') return prompts.prefix_shy + prompts.rateshow_shy.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'stronk') return prompts.prefix_stronk + prompts.rateshow_stronk.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'flirty') return prompts.prefix_flirty + prompts.rateshow_flirty.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
+	if (typeof(prompts['prefix_' + ai_setting]) == 'undefined')
+		return'Generate a confused comment.';
 	else
-	{
-		console.log('Invalid personality type: ' + ai_setting);
-		return 'Generate a confused comment.';
-	}
+		return prompts['prefix_' + ai_setting] + prompts['rateshow_' + ai_setting].replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
 }
+
 //Get prompt - rate movie
 function getPromptMovie(user, movie, comment, rating)
 {
-	if(ai_setting == 'sassy') return prompts.prefix_sassy + prompts.ratemovie_sassy.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'kind') return prompts.prefix_kind + prompts.ratemovie_kind.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'mean') return prompts.prefix_mean + prompts.ratemovie_mean.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'shy') return prompts.prefix_shy +prompts.ratemovie_shy.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'stronk') return prompts.prefix_stronk + prompts.ratemovie_stronk.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
-	else if(ai_setting == 'flirty') return prompts.prefix_flirty + prompts.rateshow_flirty.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
+	if (typeof(prompts['prefix_' + ai_setting]) == 'undefined')
+		return'Generate a confused comment.';
 	else
-	{
-		console.log('Invalid personality type: ' + ai_setting);
-		return 'Generate a confused comment.';
-	}
+		return prompts['prefix_' + ai_setting] + prompts['ratemovie_' + ai_setting].replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
 }
 
 //Dump out show details
