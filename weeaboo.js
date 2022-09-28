@@ -40,6 +40,14 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const aiModel = 'text-davinci-002';
 
+//Access levels
+const Access = {
+	readonly: 1,
+	comment: 2,
+	edit: 3,
+	admin: 4
+}
+
 //Some generic response strings
 const say_unknownRequester = "Sorry, don't know you";
 const say_unknownUser = "Sorry, don't know them";
@@ -266,7 +274,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Commenter(1) access
-			else if (requester.access < 1)
+			else if (requester.access < Access.comment)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
@@ -310,7 +318,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Commenter(1) access
-			else if (requester.access < 1)
+			else if (requester.access < Access.comment)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
@@ -354,7 +362,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Commenter(1) access
-			else if (requester.access < 1)
+			else if (requester.access < Access.comment)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
@@ -419,7 +427,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Admin(4) access
-			else if (requester.access < 4)
+			else if (requester.access < Access.admin)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
@@ -505,8 +513,8 @@ client.on('interactionCreate', async interaction =>
 					await interaction.reply({ content: say_unknownRequester, ephemeral: true });
 					return;
 				}
-				//Verify requester has at least Add/Delete(3) access
-				else if (requester.access < 3)
+				//Verify requester has at least Edit(3) access
+				else if (requester.access < Access.edit)
 				{
 					await interaction.reply({ content: say_noAccess, ephemeral: true });
 					return;
@@ -648,7 +656,7 @@ client.on('interactionCreate', async interaction =>
 					return;
 				}
 				//Verify requester has at least Commenter(1) access
-				else if (requester.access < 1)
+				else if (requester.access < Access.comment)
 				{
 					await interaction.reply({ content: say_noAccess, ephemeral: true });
 					return;
@@ -718,7 +726,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Admin(4) access
-			else if (requester.access < 4)
+			else if (requester.access < Access.admin)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
@@ -1035,7 +1043,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Commenter(1) access
-			else if (requester.access < 1)
+			else if (requester.access < Access.comment)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
@@ -1100,7 +1108,7 @@ client.on('interactionCreate', async interaction =>
 				return;
 			}
 			//Verify requester has at least Commenter(1) access
-			else if (requester.access < 1)
+			else if (requester.access < Access.comment)
 			{
 				await interaction.reply({ content: say_noAccess, ephemeral: true });
 				return;
