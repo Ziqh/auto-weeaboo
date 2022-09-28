@@ -1,0 +1,1 @@
+Auto-Weeaboo is an automatic system!
