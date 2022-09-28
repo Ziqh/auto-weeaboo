@@ -24,8 +24,8 @@ import express from 'express';
 import {Configuration, OpenAIApi} from 'openai';
 
 //Local DB config
-const db = new Database('/home/ziqh/weeaboo/watchtrack.sqlite', {readonly:false, fileMustExist:true});
-const flexdb = new Database('/home/ziqh/.flexget/db-config.sqlite', {readonly:true, fileMustExist:true});
+const db = new Database(config.watchtrack_db, {readonly:false, fileMustExist:true});
+const flexdb = new Database(config.flexget_db, {readonly:true, fileMustExist:true});
 
 //Discord Setup
 const client = new Client({intents: [GatewayIntentBits.Guilds,	GatewayIntentBits.GuildMessages]});
@@ -305,88 +305,6 @@ client.on('interactionCreate', async interaction =>
 				db.prepare('UPDATE people SET counterDate=? WHERE id=?').run(todayString, user.id);
 				await interaction.reply("I've reset the counter for " + user.name + "```\n0 days have passed since " + user.name + " " + user.counterText + "\n(Previously " + days + ")```")
 			}
-		}
-		
-		//Command: Rate (rate a movie) DEPRECIATED
-		else if (interaction.commandName == 'rate')
-		{
-			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
-			if(typeof requester == 'undefined')
-			{
-				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
-				return;
-			}
-			//Verify requester has at least Commenter(1) access
-			else if (requester.access < Access.comment)
-			{
-				await interaction.reply({ content: say_noAccess, ephemeral: true });
-				return;
-			}
-			
-			//Bound the rating 1 to 10
-			var rating = interaction.options.getInteger('rating');
-			if(rating < 1 || rating > 10)
-			{
-				await interaction.reply({ content: 'Ratings between 1 and 10 please', ephemeral: true });
-				return;
-			}
-			
-			//If movie ID provided, get details for it - otherwise use the most recent movie
-			var movie;
-			var movieID = interaction.options.getInteger('movie');
-			if(Number.isInteger(movieID))
-				movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
-			else
-				movie = db.prepare('SELECT id,name FROM movies ORDER BY watchDate DESC LIMIT 1').get();
-			//Check we got a valid movie
-			if(typeof movie == 'undefined')
-			{
-				await interaction.reply({ content: say_unknownMovie, ephemeral: true });
-				return;
-			}
-			
-			//Apply the rating
-			db.prepare('INSERT INTO movie_comments (movieID,personID,rating) VALUES (?, ?, ?) ON CONFLICT (movieID,personID) DO UPDATE SET rating=excluded.rating').run(movie.id, requester.id, rating);
-			await interaction.reply(requester.name + ' just rated ' + movie.name + ' as a ' + rating);
-		}
-		
-		//Command: Comment (comment on a movie) DEPRECIATED
-		else if (interaction.commandName == 'comment')
-		{
-			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
-			if(typeof requester == 'undefined')
-			{
-				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
-				return;
-			}
-			//Verify requester has at least Commenter(1) access
-			else if (requester.access < Access.comment)
-			{
-				await interaction.reply({ content: say_noAccess, ephemeral: true });
-				return;
-			}
-			
-			//If movie ID provided, get details for it - otherwise use the most recent movie
-			var movie;
-			var movieID = interaction.options.getInteger('movie');
-			if(Number.isInteger(movieID))
-				movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
-			else
-				movie = db.prepare('SELECT id,name FROM movies ORDER BY watchDate DESC LIMIT 1').get();
-			
-			//Check we got a valid movie
-			if(typeof movie == 'undefined')
-			{
-				await interaction.reply({ content: say_unknownMovie, ephemeral: true });
-				return;
-			}
-			
-			//Apply the comment
-			var comment = interaction.options.get('comment').value;
-			db.prepare('INSERT INTO movie_comments (movieID,personID,comment,rating) VALUES (?, ?, ?, NULL) ON CONFLICT (movieID,personID) DO UPDATE SET comment=excluded.comment').run(movie.id, requester.id, comment);
-			await interaction.reply(requester.name + ' just commented on ' + movie.name + '\n> ' + comment);
 		}
 	
 		//Command: WeedGen (Generate haha funny weed name)
@@ -1187,7 +1105,7 @@ websrv.get('/ai/:personality',(req,res) => {
 	res.redirect('/ai');
 });
 
-//	client.channels.fetch('838424335240790037').then(channel =>
+//	client.channels.fetch('channel ID').then(channel =>
 //	{
 //		channel.send('Test command triggered from web server');
 //	});
