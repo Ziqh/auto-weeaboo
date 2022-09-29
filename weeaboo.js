@@ -56,7 +56,7 @@ const say_unknownMovie = "Sorry, couldn't find that movie";
 const say_noAccess = "Sorry, that's illegal";
 
 //Startup AI setting (sassy, kind, mean, shy, stronk, flirty, dumb)
-var ai_setting = 'sassy';
+let ai_setting = 'sassy';
 
 //On successful startup...
 client.on('ready', () =>
@@ -85,7 +85,7 @@ client.on('interactionCreate', async interaction =>
 		if (interaction.commandName == 'list')
 		{
 			//Get list type
-			var listType;
+			let listType;
 			if(interaction.options.get('type') == null) listType = 'current';
 			else listType = interaction.options.get('type').value;
 			
@@ -93,28 +93,28 @@ client.on('interactionCreate', async interaction =>
 			if(listType == 'current')
 			{
 				//Set up lists for shows ready-to-watch, shows with no available episodes, and not-flexget shows
-				var readyShows = [];
-				var watchedShows = [];
-				var otherShows = [];
+				let readyShows = [];
+				let watchedShows = [];
+				let otherShows = [];
 				
 				//Grab all shows currently set as "watching"
 				const rows = db.prepare('SELECT shortName, fullName, lastWatched, watchedToday, flexget, epsAvailable FROM shows WHERE status=?').all('watching');
 				rows.forEach(show =>
 				{
 					//Figure out available episodes; flexget preferred, epsAvailable if not
-					var epsAvail = 0;
+					let epsAvail = 0;
 					if (show.flexget != '')
 						epsAvail = flexdb.prepare('SELECT MAX(number) as lastep FROM series_episodes WHERE series_id=?').get(show.flexget).lastep;
 					else if (show.epsAvailable > 0)
 						epsAvail = show.epsAvailable;
 					
 					//Figure out how many episodes are ready to watch
-					var epsToWatch = 0;
+					let epsToWatch = 0;
 					if (epsAvail > 0)
 						epsToWatch = epsAvail - show.lastWatched;
 					
 					//Pop the show into the relevant list
-					var deets = {shortName: show.shortName, fullName: show.fullName, lastWatched: show.lastWatched, watchedToday: show.watchedToday, epsAvail: epsAvail, epsToWatch: epsToWatch};
+					let deets = {shortName: show.shortName, fullName: show.fullName, lastWatched: show.lastWatched, watchedToday: show.watchedToday, epsAvail: epsAvail, epsToWatch: epsToWatch};
 					if (show.flexget == '')
 						otherShows.push(deets);
 					else if(epsToWatch > 0)
@@ -124,7 +124,7 @@ client.on('interactionCreate', async interaction =>
 				});
 				
 				//Start building the string to send
-				var	sendString = 'List of tracked shows:\n```cs\n'
+				let	sendString = 'List of tracked shows:\n```cs\n'
 				
 				//Tracked shows with unwatched episodes
 				sendString += 'Ready to watch:\n'
@@ -148,7 +148,7 @@ client.on('interactionCreate', async interaction =>
 			else if(listType=='finished' || listType=='dropped')
 			{
 				//Start building the string to send
-				var	sendString = 'List of ' + listType + ' shows:\n```cs\n'
+				let	sendString = 'List of ' + listType + ' shows:\n```cs\n'
 				
 				//Grab all shows that match filter
 				const rows = db.prepare('SELECT shortName, fullName, lastWatched, watchedToday, flexget, epsAvailable FROM shows WHERE status=?').all(listType);
@@ -164,7 +164,7 @@ client.on('interactionCreate', async interaction =>
 			else if(listType=='movies')
 			{
 				//Start building the string to send
-				var	sendString = 'List of last 20 watched movies:\n```cs\n'
+				let	sendString = 'List of last 20 watched movies:\n```cs\n'
 				
 				//Grab last 20 watched movies
 				const rows = db.prepare('SELECT id, name, watchDate FROM movies WHERE watchDate > \'01/01/2000\' ORDER BY id DESC LIMIT 20').all();
@@ -180,7 +180,7 @@ client.on('interactionCreate', async interaction =>
 			else if(listType=='suggestions')
 			{
 				//Start building the string to send
-				var	sendString = 'List of active suggestions:\n```cs\n'
+				let	sendString = 'List of active suggestions:\n```cs\n'
 				
 				//Grab all suggestions
 				const rows = db.prepare('SELECT id, user, date, suggestion FROM suggestions').all();
@@ -206,7 +206,7 @@ client.on('interactionCreate', async interaction =>
 			}
 			
 			//Get show details
-			var show = getShowDetails(interaction.options.get('show').value);
+			let show = getShowDetails(interaction.options.get('show').value);
 			
 			//Verify the show exists
 			if(typeof show == 'undefined')
@@ -227,7 +227,7 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'who')
 		{
 			//Get target user details
-			var user = getUserDetails(interaction.options.get('user').value);
+			let user = getUserDetails(interaction.options.get('user').value);
 			
 			//Verify the target user exists
 			if(typeof user == 'undefined')
@@ -267,7 +267,7 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'reset')
 		{
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -281,7 +281,7 @@ client.on('interactionCreate', async interaction =>
 			}
 			
 			//Verify the target user exists and get details
-			var user = getUserDetails(interaction.options.get('user').value);
+			let user = getUserDetails(interaction.options.get('user').value);
 			if(typeof user == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownUser, ephemeral: true });
@@ -311,9 +311,9 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'weedgen')
 		{
 			//Get random values for each part
-			var intro = db.prepare('SELECT text FROM weedGen WHERE type=1 ORDER BY RANDOM() LIMIT 1').get().text;
-			var prefix = db.prepare('SELECT text FROM weedGen WHERE type=2 ORDER BY RANDOM() LIMIT 1').get().text;
-			var suffix = db.prepare('SELECT text FROM weedGen WHERE type=3 ORDER BY RANDOM() LIMIT 1').get().text;
+			let intro = db.prepare('SELECT text FROM weedGen WHERE type=1 ORDER BY RANDOM() LIMIT 1').get().text;
+			let prefix = db.prepare('SELECT text FROM weedGen WHERE type=2 ORDER BY RANDOM() LIMIT 1').get().text;
+			let suffix = db.prepare('SELECT text FROM weedGen WHERE type=3 ORDER BY RANDOM() LIMIT 1').get().text;
 			
 			//Add an 's' sometimes
 			if (suffix.slice(-1) != 's' && Math.random() > 0.8)
@@ -338,7 +338,7 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'justwatched')
 		{
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -352,8 +352,8 @@ client.on('interactionCreate', async interaction =>
 			}
 			
 			//If movie ID provided, get details for it - otherwise use the most recent movie
-			var movie;
-			var movieID = interaction.options.getInteger('movie');
+			let movie;
+			let movieID = interaction.options.getInteger('movie');
 			if(Number.isInteger(movieID))
 				movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
 			else
@@ -382,7 +382,7 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'password')
 		{
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -409,7 +409,7 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'show')
 		{
 			//Get a valid show, regardless of subcommand
-			var show = getShowDetails(interaction.options.get('showid').value);
+			let show = getShowDetails(interaction.options.get('showid').value);
 			if(typeof show == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownShow, ephemeral: true });
@@ -425,7 +425,7 @@ client.on('interactionCreate', async interaction =>
 			else if (interaction.options.getSubcommand() == 'status')
 			{
 				//Verify the requester exists
-				var requester = getUserDetails(interaction.user.id);
+				let requester = getUserDetails(interaction.user.id);
 				if(typeof requester == 'undefined')
 				{
 					await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -446,7 +446,7 @@ client.on('interactionCreate', async interaction =>
 					const row1 = new ActionRowBuilder().addComponents(commentButton);
 				
 				//Get set status
-				var setStatus = interaction.options.get('setstatus').value;
+				let setStatus = interaction.options.get('setstatus').value;
 				
 				//If finished...
 				if(setStatus == 'finished')
@@ -519,18 +519,18 @@ client.on('interactionCreate', async interaction =>
 				}
 
 				//If episode number provided, use it; otherwise use current episode + 1
-				var epNo = interaction.options.getInteger('episode');
+				let epNo = interaction.options.getInteger('episode');
 				if(!Number.isInteger(epNo)) epNo = show.lastWatched + 1;
 				
 				//If currentSeason populated, use it; otherwise assume 1 (did I ever use this to begin with?)
-				var seNo = 1;
+				let seNo = 1;
 				if(Number.isInteger(show.currentSeason)) seNo = show.currentSeason;
 				
 				//Grab the episode data (use await to make all the async stuff behave like regular-ass sync calls)
-				var requestUrl = 'https://api.thetvdb.com/series/' + show.tvdb + '/episodes/query?airedSeason=' + seNo + '&airedEpisode=' + epNo;
-				var result = await fetch(requestUrl, { method: "Get" });
-				var json = await result.json();
-				var epData = json['data'][0];
+				let requestUrl = 'https://api.thetvdb.com/series/' + show.tvdb + '/episodes/query?airedSeason=' + seNo + '&airedEpisode=' + epNo;
+				let result = await fetch(requestUrl, { method: "Get" });
+				let json = await result.json();
+				let epData = json['data'][0];
 				
 				//Build an embed
 				const epDataEmbed = new EmbedBuilder()
@@ -549,8 +549,8 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'movie')
 		{
 			//If movie ID provided, get details for it - otherwise use the most recent movie
-			var movie;
-			var movieID = interaction.options.getInteger('movieid');
+			let movie;
+			let movieID = interaction.options.getInteger('movieid');
 			if(Number.isInteger(movieID))
 				movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
 			else
@@ -567,7 +567,7 @@ client.on('interactionCreate', async interaction =>
 			if (interaction.options.getSubcommand() == 'rate')
 			{
 				//Verify the requester exists
-				var requester = getUserDetails(interaction.user.id);
+				let requester = getUserDetails(interaction.user.id);
 				if(typeof requester == 'undefined')
 				{
 					await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -637,7 +637,7 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'personality')
 		{
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -685,22 +685,22 @@ client.on('interactionCreate', async interaction =>
 			}
 			
 			//Set up show list
-			var showString = '';
+			let showString = '';
 			
 			//Figure out which shows could reasonably be watched next, pop into a list
 			const rows = db.prepare('SELECT fullName, lastWatched, flexget, epsAvailable FROM shows WHERE status=?').all('watching');
-			var firstLine = true;
+			let firstLine = true;
 			rows.forEach(show =>
 			{
 				//Figure out available episodes; flexget preferred, epsAvailable if not
-				var epsAvail = 0;
+				let epsAvail = 0;
 				if (show.flexget != '')
 					epsAvail = flexdb.prepare('SELECT MAX(number) as lastep FROM series_episodes WHERE series_id=?').get(show.flexget).lastep;
 				else if (show.epsAvailable > 0)
 					epsAvail = show.epsAvailable;
 				
 				//Figure out how many episodes are ready to watch
-				var epsToWatch = 0;
+				let epsToWatch = 0;
 				if (epsAvail > 0)
 					epsToWatch = epsAvail - show.lastWatched;
 				
@@ -720,14 +720,14 @@ client.on('interactionCreate', async interaction =>
 			rows.forEach(show =>
 			{
 				//Figure out available episodes; flexget preferred, epsAvailable if not
-				var epsAvail = 0;
+				let epsAvail = 0;
 				if (show.flexget != '')
 					epsAvail = flexdb.prepare('SELECT MAX(number) as lastep FROM series_episodes WHERE series_id=?').get(show.flexget).lastep;
 				else if (show.epsAvailable > 0)
 					epsAvail = show.epsAvailable;
 				
 				//Figure out how many episodes are ready to watch
-				var epsToWatch = 0;
+				let epsToWatch = 0;
 				if (epsAvail > 0)
 					epsToWatch = epsAvail - show.lastWatched;
 				
@@ -767,7 +767,7 @@ client.on('interactionCreate', async interaction =>
 			}
 
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -778,7 +778,7 @@ client.on('interactionCreate', async interaction =>
 			if (interaction.options.get('showid') != null)
 			{
 				//Check we got a valid show
-				var show = getShowDetails(interaction.options.get('showid').value);
+				let show = getShowDetails(interaction.options.get('showid').value);
 				if(typeof show == 'undefined')
 				{
 					await interaction.reply({ content: say_unknownShow, ephemeral: true });
@@ -800,8 +800,8 @@ client.on('interactionCreate', async interaction =>
 			else if (interaction.options.getInteger('movieid') != null)
 			{
 				//Check we got a valid movie
-				var movieID = interaction.options.getInteger('movieid');
-				var movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
+				let movieID = interaction.options.getInteger('movieid');
+				let movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
 				if(typeof movie == 'undefined')
 				{
 					await interaction.reply({ content: say_unknownMovie + '(' + movieID + ')', ephemeral: true });
@@ -823,7 +823,7 @@ client.on('interactionCreate', async interaction =>
 			else if (interaction.options.get('userid') != null)
 			{
 				//Get target user details
-				var user = getUserDetails(interaction.options.get('userid').value);
+				let user = getUserDetails(interaction.options.get('userid').value);
 				
 				//Verify the target user exists
 				if(typeof user == 'undefined')
@@ -954,7 +954,7 @@ client.on('interactionCreate', async interaction =>
 		if (interaction.customId.startsWith('form_rateshow'))
 		{
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -1019,7 +1019,7 @@ client.on('interactionCreate', async interaction =>
 		if (interaction.customId.startsWith('form_ratemovie'))
 		{
 			//Verify the requester exists
-			var requester = getUserDetails(interaction.user.id);
+			let requester = getUserDetails(interaction.user.id);
 			if(typeof requester == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
@@ -1036,7 +1036,7 @@ client.on('interactionCreate', async interaction =>
 			const movieID = interaction.customId.substr(14);
 			
 			//Check we got a valid movie
-			var movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
+			let movie = db.prepare('SELECT id,name FROM movies WHERE id=?').get(movieID);
 			if(typeof movie == 'undefined')
 			{
 				await interaction.reply({ content: say_unknownMovie + ' (ID:' + movieID + ')', ephemeral: true });
@@ -1046,9 +1046,9 @@ client.on('interactionCreate', async interaction =>
 			//Get the variables from the form
 			const comment = interaction.fields.getTextInputValue('rateComment');
 			const rating = parseInt(interaction.fields.getTextInputValue('rateOverall')) || 0;
-			var rateGoodBad = parseInt(interaction.fields.getTextInputValue('rateGoodBad')) || 0;
-			var rateFunBoring = parseInt(interaction.fields.getTextInputValue('rateFunBoring')) || 0;
-			var rateDryHorny = parseInt(interaction.fields.getTextInputValue('rateDryHorny')) || 0;
+			let rateGoodBad = parseInt(interaction.fields.getTextInputValue('rateGoodBad')) || 0;
+			let rateFunBoring = parseInt(interaction.fields.getTextInputValue('rateFunBoring')) || 0;
+			let rateDryHorny = parseInt(interaction.fields.getTextInputValue('rateDryHorny')) || 0;
 			
 			//Reject the rating if it doesn't validate
 			if(rating < 1 || rating > 10)
@@ -1090,7 +1090,7 @@ client.on('interactionCreate', async interaction =>
 
 //Web Server - Change personality
 websrv.get('/ai',(req,res) => {
-	var htmlString = '<!DOCTYPE html>';
+	let htmlString = '<!DOCTYPE html>';
 	htmlString += '<head><link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"><title>Auto-Weeaboo Options Panel</title></head>';
 	htmlString += '<body><div style="max-width:500px;padding:20px;">';
 	htmlString += 'Today I feel: <b>' + ai_setting + '</b><br><br>';
@@ -1144,8 +1144,8 @@ function getPromptMovie(user, movie, comment, rating)
 //Dump out show details
 function printShow(show)
 {
-	var retString = '';
-	var padLength = 12 - show.shortName.length;
+	let retString = '';
+	let padLength = 12 - show.shortName.length;
 	
 	//Add show code
 	retString += ' [' + show.shortName + '] '
@@ -1173,7 +1173,7 @@ function printShow(show)
 //Dump out movie details
 function printMovie(movie)
 {
-	var retString = '';
+	let retString = '';
 	
 	//Add movie id, pad to three digits
 	retString += ' [' + movie.id.toString().padStart(3,'0') + '] '
@@ -1189,7 +1189,7 @@ function printMovie(movie)
 //Dump out suggestion
 function printSuggestion(sug)
 {
-	var retString = '';
+	let retString = '';
 	
 	//Add suggestion ID
 	retString += ' [' + sug.id + '] '

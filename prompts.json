@@ -32,7 +32,7 @@
 
 	"change":"\nChat: Let's all give a very short introduction.\nAW:",
 	"suggest":"\nChat: Here's the shows we have available today - <shows>.\nChat: Which single one of these should we watch next, and why? You can only reccomend one of them!\nAW:",
-	"opinion_movie":"\n<user>: Hey, what do you think of the movie <movie>?\nAW:",
-	"opinion_show":"\n<user>: Hey, what do you think of the anime <show>?\nAW:",
-	"opinion_user":"\n<user>: Hey, you know <target>? What's your most interesting opinion on them?\nAW:"
+	"opinion_movie":"\n<user>: Hey, you know the movie '<movie>'? Tell me what you think of it\nAW:",
+	"opinion_show":"\n<user>: Hey, you know the anime '<show>'? Tell me what you think of it\nAW:",
+	"opinion_user":"\n<user>: Hey, you know <target>? Tell me something weird about them\nAW:"
 }
