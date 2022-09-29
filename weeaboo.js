@@ -1118,27 +1118,27 @@ function getShowDetails(showID) {return db.prepare('SELECT * FROM shows WHERE sh
 //Get prompt - prefix only
 function getPromptPrefix()
 {
-	if (typeof(prompts['prefix_' + ai_setting]) == 'undefined')
+	if (typeof(prompts[ai_setting].prefix) == 'undefined')
 		return'You are a confused AI girl who feels like something has gone wrong. ';
 	else
-		return prompts['prefix_' + ai_setting];
+		return prompts[ai_setting].prefix;
 }
 //Get prompt - rate show
 function getPromptShow(user, show, comment, rating)
 {
-	if (typeof(prompts['prefix_' + ai_setting]) == 'undefined')
+	if (typeof(prompts[ai_setting].prefix) == 'undefined')
 		return'Generate a confused comment.';
 	else
-		return prompts['prefix_' + ai_setting] + prompts['rateshow_' + ai_setting].replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
+		return prompts[ai_setting].prefix + prompts[ai_setting].rateshow.replaceAll('<user>',user).replaceAll('<show>',show).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
 }
 
 //Get prompt - rate movie
 function getPromptMovie(user, movie, comment, rating)
 {
-	if (typeof(prompts['prefix_' + ai_setting]) == 'undefined')
+	if (typeof(prompts[ai_setting].prefix) == 'undefined')
 		return'Generate a confused comment.';
 	else
-		return prompts['prefix_' + ai_setting] + prompts['ratemovie_' + ai_setting].replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
+		return prompts[ai_setting].prefix + prompts[ai_setting].ratemovie.replaceAll('<user>',user).replaceAll('<movie>',movie).replaceAll('<comment>',comment).replaceAll('<rating>',rating);
 }
 
 //Dump out show details
