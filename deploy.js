@@ -5,7 +5,7 @@ import {Routes} from 'discord-api-types/v10';
 import config from './config.json' assert {type:'json'};
 
 //Set up rest request
-const rest = new REST({ version: '10' }).setToken(config.token);
+const rest = new REST({ version: '10' }).setToken(config.key.token);
 
 //Command descriptors
 const commands =
@@ -178,11 +178,11 @@ const commands =
 .map(command => command.toJSON());
 
 //Register commands with The Shed
-rest.put(Routes.applicationGuildCommands(config.clientID, config.shedID), { body: commands })
+rest.put(Routes.applicationGuildCommands(config.key.client, config.guild.shed), { body: commands })
 	.then(() => console.log('Commands registered with The Shed'))
 	.catch(console.error);
 
 //Register commands with LLLDMZ
-rest.put(Routes.applicationGuildCommands(config.clientID, config.dmzID), { body: commands })
+rest.put(Routes.applicationGuildCommands(config.key.client, config.guild.shed), { body: commands })
 	.then(() => console.log('Commands registered with LLLDMZ'))
 	.catch(console.error);

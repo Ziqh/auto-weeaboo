@@ -24,8 +24,8 @@ import express from 'express';
 import {Configuration, OpenAIApi} from 'openai';
 
 //Local DB config
-const db = new Database(config.watchtrack_db, {readonly:false, fileMustExist:true});
-const flexdb = new Database(config.flexget_db, {readonly:true, fileMustExist:true});
+const db = new Database(config.db.watchtrack, {readonly:false, fileMustExist:true});
+const flexdb = new Database(config.db.flexget, {readonly:true, fileMustExist:true});
 
 //Discord Setup
 const client = new Client({intents: [GatewayIntentBits.Guilds,	GatewayIntentBits.GuildMessages]});
@@ -35,7 +35,7 @@ const websrv = express();
 
 //OpenAI setup
 const configuration = new Configuration({
-  apiKey: config.openai,
+  apiKey: config.key.openai,
 });
 const openai = new OpenAIApi(configuration);
 const aiModel = 'text-davinci-002';
@@ -1204,5 +1204,5 @@ function printSuggestion(sug)
 }
 
 //Start that bitch up
-client.login(config.token);
+client.login(config.key.token);
 
