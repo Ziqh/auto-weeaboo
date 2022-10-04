@@ -1088,7 +1088,7 @@ client.on('interactionCreate', async interaction =>
 	}
 });
 
-//Web Server - Change personality
+//Web: Change AI settings
 websrv.get('/ai',(req,res) => {
 	let htmlString = '<!DOCTYPE html>';
 	htmlString += '<head><link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"><title>Auto-Weeaboo Options Panel</title></head>';
@@ -1105,6 +1105,43 @@ websrv.get('/ai/:personality',(req,res) => {
 	ai_setting = req.params.personality;
 	res.redirect('/ai');
 });
+
+//Web: Test
+websrv.get('/test',(req,res) => {
+	client.channels.fetch(config.channel.shed-general).then(channel =>
+	{
+		//Get all pinned messages in The Shed #general
+		channel.messages.fetchPinned().then(messages => 
+		{
+			//Respond via web service for now
+			let htmlString = '<!DOCTYPE html>';
+			htmlString += `Found ${messages.size} pinned messages:<br>`;
+			const today = new Date();
+
+			messages.forEach(msg => {
+				let pinDate = new Date(msg.createdTimestamp);
+				let pinVersary = pinDate.setFullYear(today.getFullYear());
+				let diff = Math.round((pinVersary - today) / (1000*60*60*24));
+
+				//For each message, check if it is an anniversary or not
+				htmlString += `Message: ${msg.id}: `;
+				if (today.getDate() == pinDate.getDate() && today.getMonth() == pinDate.getMonth())
+					htmlString += `${today.getFullYear() - pinDate.getFullYear()} year anniversary!<br>`;
+				else
+				{
+					htmlString += 'Not anniversary';
+					if (diff > 0)
+						htmlString += `, ${diff} days away`;
+					htmlString += '<br>';
+				}
+			});
+			res.send(htmlString);
+		});
+	});
+});
+
+
+
 
 //	client.channels.fetch('channel ID').then(channel =>
 //	{
