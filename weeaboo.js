@@ -15,7 +15,8 @@ import {
 	TextInputStyle,
 	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonStyle
+	ButtonStyle,
+	ActivityType
 	} from 'discord.js';
 import Database from 'better-sqlite3'
 import fetch from 'node-fetch';
@@ -73,6 +74,9 @@ client.on('ready', () =>
 	{
 		console.log('Web server started on port 3000');
 	})
+
+	//Clear activity
+	client.user.setPresence({ activities: null });
 });
 
 //Primary method for all interaction commands
@@ -1103,12 +1107,13 @@ websrv.get('/ai',(req,res) => {
 });
 websrv.get('/ai/:personality',(req,res) => {
 	ai_setting = req.params.personality;
+	client.user.setPresence({ activities: [{ name: ai_setting, type: ActivityType.Watching }]});
 	res.redirect('/ai');
 });
 
 //Web: Test
 websrv.get('/test',(req,res) => {
-	client.channels.fetch(config.channel.shed-general).then(channel =>
+	client.channels.fetch(config.channel.shed_general).then(channel =>
 	{
 		//Get all pinned messages in The Shed #general
 		channel.messages.fetchPinned().then(messages => 
