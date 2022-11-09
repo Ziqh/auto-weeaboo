@@ -128,7 +128,7 @@ const commands =
 		.addSubcommand(subcommand =>
 			subcommand.setName('rate')
 			.setDescription('Rate a movie')
-			.addStringOption(option =>
+			.addIntegerOption(option =>
 				option.setName('movieid')
 				.setDescription('The movie ID to rate')
 				.setRequired(false))

@@ -237,7 +237,7 @@ client.on('interactionCreate', async interaction =>
 			}
 			
 			//Build up the info string
-			sendString = 'That\'s ' + user.name;
+			let sendString = 'That\'s ' + user.name;
 
 			//Give counter info where available
 			if (user.counterText != '')
@@ -490,7 +490,7 @@ client.on('interactionCreate', async interaction =>
 					.setCustomId('rateComment')
 					.setRequired(true)
 					.setLabel('What did you think?')
-					.setStyle(TextInputStyle.Short);
+					.setStyle(TextInputStyle.Paragraph);
 				const row1 = new ActionRowBuilder().addComponents(rateComment);
 				
 				//Rating
@@ -590,7 +590,7 @@ client.on('interactionCreate', async interaction =>
 					.setCustomId('rateComment')
 					.setRequired(true)
 					.setLabel('What did you think?')
-					.setStyle(TextInputStyle.Short);
+					.setStyle(TextInputStyle.Paragraph);
 				const row1 = new ActionRowBuilder().addComponents(rateComment);
 				
 				//Rating
@@ -870,7 +870,7 @@ client.on('interactionCreate', async interaction =>
 				.setCustomId('rateComment')
 				.setRequired(true)
 				.setLabel('What did you think?')
-				.setStyle(TextInputStyle.Short);
+				.setStyle(TextInputStyle.Paragraph);
 			const row1 = new ActionRowBuilder().addComponents(rateComment);
 			
 			//Rating
@@ -904,7 +904,7 @@ client.on('interactionCreate', async interaction =>
 				.setCustomId('rateComment')
 				.setRequired(true)
 				.setLabel('What did you think?')
-				.setStyle(TextInputStyle.Short);
+				.setStyle(TextInputStyle.Paragraph);
 			const row1 = new ActionRowBuilder().addComponents(rateComment);
 			
 			//Rating
