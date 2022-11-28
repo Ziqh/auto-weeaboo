@@ -43,8 +43,9 @@ const aiModel = 'text-davinci-002';
 
 //Access levels
 const Access = {
-	readonly: 1,
-	comment: 2,
+	readonly: 0,
+	comment: 1,
+	watch: 2,
 	edit: 3,
 	admin: 4
 }
