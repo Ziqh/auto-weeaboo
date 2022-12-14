@@ -58,7 +58,7 @@ const say_unknownMovie = "Sorry, couldn't find that movie";
 const say_noAccess = "Sorry, that's illegal";
 
 //Startup AI setting (sassy, kind, mean, shy, stronk, flirty, dumb)
-let ai_setting = 'sassy';
+let ai_setting = 'stronk';
 
 //On successful startup...
 client.on('ready', () =>
@@ -853,6 +853,52 @@ client.on('interactionCreate', async interaction =>
 			{
 				await interaction.reply({ content: 'Sorry, didn\'t get anything to give an opinion on', ephemeral: true });
 			}			
+		}
+		
+		//Command: Temperature (get room temperature)
+		else if (interaction.commandName == 'temperature')
+		{
+			//Get temperature from the pi
+			const result = await fetch('http://192.168.1.101:3000/', { method: "Get" });
+			const tempFull = await result.text();
+			const temp = tempFull.split(';')
+			
+			//Room sensor
+			if (isNaN(temp[0]))
+				await interaction.reply({ content: 'Sorry, I have no clue where I am', ephemeral: true });
+			else
+			{
+				let tempString = 'It\'s about ' + temp[0] + ' degrees in here, that\'s ';
+				if (temp[0] <= 12) tempString += 'extremely cold';
+				else if (temp[0] <= 16) tempString += 'cold.';
+				else if (temp[0] <= 20) tempString += 'normal.';
+				else if (temp[0] <= 22) tempString += 'cosy.';
+				else if (temp[0] <= 24) tempString += 'warm.';
+				else if (temp[0] <= 28) tempString += 'hot.';
+				else tempString += 'extremely hot.';
+				
+				//Tea sensor
+				if (!isNaN(temp[1]))
+				{
+					//Assume that cold tea is the same as no tea
+					if(temp[1] > 30)
+						tempString += ' Ziqh\'s tea is currently ' + temp[1] + ' degrees.';
+				}
+				
+				await interaction.reply({ content: tempString });
+				
+				//If AI enabled, replace the response with a stupider one
+				if(ai_setting != 'dumb')
+				{
+					const completion = await openai.createCompletion({
+					model: aiModel,
+						max_tokens: 50,
+						temperature: 1,
+						prompt: 'Re-write the following sentence as if it were sent from a 12 year old girl who uses emojis: ' + tempString
+					});
+					await interaction.editReply(completion.data.choices[0].text.replace(/(\r\n|\n|\r)/gm, ""));
+				}
+			}
 		}
 	}
 	

@@ -173,7 +173,11 @@ const commands =
 			option.setName('userid')
 			.setDescription('The user')
 			.setRequired(false)
-		)
+		),
+		
+	//Command: temperature
+	new SlashCommandBuilder().setName('temperature')
+		.setDescription('Ask Auto-Weeaboo what temperature her room is'),
 ]
 .map(command => command.toJSON());
 
@@ -183,6 +187,6 @@ rest.put(Routes.applicationGuildCommands(config.key.client, config.guild.shed), 
 	.catch(console.error);
 
 //Register commands with LLLDMZ
-rest.put(Routes.applicationGuildCommands(config.key.client, config.guild.shed), { body: commands })
+rest.put(Routes.applicationGuildCommands(config.key.client, config.guild.dmz), { body: commands })
 	.then(() => console.log('Commands registered with LLLDMZ'))
 	.catch(console.error);
