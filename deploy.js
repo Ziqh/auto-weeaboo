@@ -21,6 +21,7 @@ const commands =
 				{ name: 'Current Shows', value: 'current' },
 				{ name: 'Finished Shows', value: 'finished' },
 				{ name: 'Dropped Shows', value: 'dropped' },
+				{ name: 'Maybe Shows', value: 'maybe' },
 				{ name: 'Watched Movies', value: 'movies' },
 				{ name: 'Suggestions', value: 'suggestions' },
 			)),

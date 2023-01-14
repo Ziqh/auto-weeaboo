@@ -58,7 +58,7 @@ const say_unknownMovie = "Sorry, couldn't find that movie";
 const say_noAccess = "Sorry, that's illegal";
 
 //Startup AI setting (sassy, kind, mean, shy, stronk, flirty, dumb)
-let ai_setting = 'stronk';
+let ai_setting = 'dumb';
 
 //On successful startup...
 client.on('ready', () =>
@@ -150,7 +150,7 @@ client.on('interactionCreate', async interaction =>
 				sendString += '```';
 				await interaction.reply(sendString);
 			}
-			else if(listType=='finished' || listType=='dropped')
+			else if(listType=='finished' || listType=='dropped' || listType=='maybe' )
 			{
 				//Start building the string to send
 				let	sendString = 'List of ' + listType + ' shows:\n```cs\n'
