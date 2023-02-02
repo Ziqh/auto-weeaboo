@@ -944,12 +944,20 @@ client.on('interactionCreate', async interaction =>
 				headers: {'Content-Type': 'application/json'}
 			});
 
-			//Grab the response and decode it from base64
-			let json = await response.json();
-			let img = Buffer.from(json['images'][0], 'base64');
+			//If we don't get a proper response, abandon ship 
+			if (res.statusCode != 200)
+			{
+				await interaction.editReply("Sorry, I lost my favourite pen and can't draw without it");
+			}
+			else
+			{
+				//Grab the response and decode it from base64
+				let json = await response.json();
+				let img = Buffer.from(json['images'][0], 'base64');
 
-			//Dump out the image
-			await interaction.editReply({ files: [{ attachment: img }] });
+				//Dump out the image
+				await interaction.editReply({ files: [{ attachment: img }] });
+			}	
 		}
 	}
 	
@@ -1260,6 +1268,7 @@ websrv.get('/test',async (req,res) => {
 		body: JSON.stringify(payload),
 		headers: {'Content-Type': 'application/json'}
 	});
+
 	let json = await response.json();
 	let img = Buffer.from(json['images'][0], 'base64');
 
