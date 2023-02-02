@@ -176,9 +176,14 @@ const commands =
 			.setRequired(false)
 		),
 		
-	//Command: temperature
-	new SlashCommandBuilder().setName('temperature')
-		.setDescription('Ask Auto-Weeaboo what temperature her room is'),
+	//Command: weebimg
+	new SlashCommandBuilder().setName('weebimg')
+		.setDescription('Generate a weeb image')
+		.addStringOption(option =>
+			option.setName('prompt')
+			.setDescription('What you want a weeb image of')
+			.setRequired(true)
+		)
 ]
 .map(command => command.toJSON());
 

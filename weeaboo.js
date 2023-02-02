@@ -900,6 +900,57 @@ client.on('interactionCreate', async interaction =>
 				}
 			}
 		}
+
+		//Command: weebimg (get a stable-diffusion image from a local device)
+		else if (interaction.commandName == 'weebimg')
+		{
+			//Verify the requester exists
+			let requester = getUserDetails(interaction.user.id);
+			if(typeof requester == 'undefined')
+			{
+				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
+				return;
+			}
+			//Verify requester has at least edit access
+			else if (requester.access < Access.edit)
+			{
+				await interaction.reply({ content: say_noAccess, ephemeral: true });
+				return;
+			}
+			
+			//Give a placeholder response
+			await interaction.deferReply();
+
+			//Get requested prompt
+			let prompt = interaction.options.get('prompt').value;
+			prompt = "masterpiece, best quality, " + prompt;
+
+			//Build up the stable-diffusion-webui api request
+			let payload = {
+				"prompt": prompt,
+				"seed": -1,
+				"steps": 28,
+				"cfg_scale": 12,
+				"width": 512,
+				"height": 300,
+				"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+				"sampler_index": "Euler"
+			  };
+			
+			//Send the txt2img request (currently hardcoded to HURRICANE)
+			let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
+				method: 'post',
+				body: JSON.stringify(payload),
+				headers: {'Content-Type': 'application/json'}
+			});
+
+			//Grab the response and decode it from base64
+			let json = await response.json();
+			let img = Buffer.from(json['images'][0], 'base64');
+
+			//Dump out the image
+			await interaction.editReply({ files: [{ attachment: img }] });
+		}
 	}
 	
 	//Button handlers
@@ -1158,8 +1209,8 @@ websrv.get('/ai/:personality',(req,res) => {
 	res.redirect('/ai');
 });
 
-//Web: Test
-websrv.get('/test',(req,res) => {
+//Web: Find pinniversary
+websrv.get('/pins',(req,res) => {
 	client.channels.fetch(config.channel.shed_general).then(channel =>
 	{
 		//Get all pinned messages in The Shed #general
@@ -1192,6 +1243,32 @@ websrv.get('/test',(req,res) => {
 	});
 });
 
+//Web: Tests
+websrv.get('/test',async (req,res) => {
+	let payload = {
+		"prompt": "masterpiece, best quality, megumin, victory pose",
+		"seed": -1,
+		"steps": 28,
+		"cfg_scale": 12,
+		"width": 512,
+		"height": 512,
+		"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+		"sampler_index": "Euler"
+	  };
+	let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
+		method: 'post',
+		body: JSON.stringify(payload),
+		headers: {'Content-Type': 'application/json'}
+	});
+	let json = await response.json();
+	let img = Buffer.from(json['images'][0], 'base64');
+
+	res.writeHead(200, {
+		'Content-Type': 'image/png',
+		'Content-Length': img.length
+	  });
+	  res.end(img); 
+});
 
 
 
