@@ -938,14 +938,21 @@ client.on('interactionCreate', async interaction =>
 			  };
 			
 			//Send the txt2img request (currently hardcoded to HURRICANE)
-			let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
-				method: 'post',
-				body: JSON.stringify(payload),
-				headers: {'Content-Type': 'application/json'}
-			});
+			try
+			{
+				let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
+					method: 'post',
+					body: JSON.stringify(payload),
+					headers: {'Content-Type': 'application/json'}
+				});
+			}
+			catch (error)
+			{
+				await interaction.editReply("Sorry, I messed up :(");
+			}
 
 			//If we don't get a proper response, abandon ship 
-			if (res.statusCode != 200)
+			if (response.statusCode != 200)
 			{
 				await interaction.editReply("Sorry, I lost my favourite pen and can't draw without it");
 			}
