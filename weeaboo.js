@@ -39,7 +39,7 @@ const configuration = new Configuration({
   apiKey: config.key.openai,
 });
 const openai = new OpenAIApi(configuration);
-const aiModel = 'text-davinci-002';
+const aiModel = 'text-davinci-003';
 
 //Access levels
 const Access = {
