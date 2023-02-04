@@ -23,6 +23,7 @@ import fetch from 'node-fetch';
 import bcrypt from 'bcryptjs';
 import express from 'express';
 import {Configuration, OpenAIApi} from 'openai';
+import isReachable from 'is-reachable';
 
 //Local DB config
 const db = new Database(config.db.watchtrack, {readonly:false, fileMustExist:true});
@@ -39,7 +40,7 @@ const configuration = new Configuration({
   apiKey: config.key.openai,
 });
 const openai = new OpenAIApi(configuration);
-const aiModel = 'text-davinci-002';
+const aiModel = 'text-davinci-003';
 
 //Access levels
 const Access = {
@@ -58,7 +59,7 @@ const say_unknownMovie = "Sorry, couldn't find that movie";
 const say_noAccess = "Sorry, that's illegal";
 
 //Startup AI setting (sassy, kind, mean, shy, stronk, flirty, dumb)
-let ai_setting = 'dumb';
+let ai_setting = 'stronk';
 
 //On successful startup...
 client.on('ready', () =>
@@ -900,6 +901,158 @@ client.on('interactionCreate', async interaction =>
 				}
 			}
 		}
+
+		//Command: weebimg (get a stable-diffusion image from a local device)
+		else if (interaction.commandName == 'weebimg')
+		{
+			//Check HURRICANE is online
+			if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 1000}))
+			{
+				await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+				return;
+			}
+
+			//Verify the requester exists
+			let requester = getUserDetails(interaction.user.id);
+			if(typeof requester == 'undefined')
+			{
+				await interaction.reply({ content: say_unknownRequester, ephemeral: true });
+				return;
+			}
+			//Verify requester has at least edit access
+			else if (requester.access < Access.comment)
+			{
+				await interaction.reply({ content: say_noAccess, ephemeral: true });
+				return;
+			}
+			
+			//Give a placeholder response
+			await interaction.deferReply();
+
+			//Get requested prompt
+			let prompt = interaction.options.get('prompt').value;
+			prompt = "masterpiece, best quality, " + prompt;
+
+			//Build up the stable-diffusion-webui api request
+			let payload = {
+				"prompt": prompt,
+				"seed": -1,
+				"steps": 28,
+				"cfg_scale": 12,
+				"width": 512,
+				"height": 300,
+				"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+				"sampler_index": "Euler"
+			  };
+			
+			//Send the txt2img request (currently hardcoded to HURRICANE)
+			let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
+				method: 'post',
+				body: JSON.stringify(payload),
+				headers: {'Content-Type': 'application/json'}
+			});
+			if(!response)
+			{
+				await interaction.editReply("Sorry, I messed up :(");
+				return;
+			}
+
+			//Grab the response and decode it from base64
+			let json = await response.json();
+			let img = Buffer.from(json['images'][0], 'base64');
+
+			//Dump out the image
+			await interaction.editReply({ files: [{ attachment: img }] });
+		}
+
+
+		//Context menu handlers (a type of Command, apparently)
+		if (interaction.isMessageContextMenuCommand())
+		{
+			//Delete this - Remove a message (probably a horrid image prompt)
+			if (interaction.commandName == 'Delete this')
+			{
+				//Only delete our own messages
+				if(interaction.targetMessage.author.id != '885544415844765766')
+				{
+					await interaction.reply({ content: "Sorry, I can only delete my own stuff", ephemeral: true });
+					return;
+				}
+
+				//Zap it, respond to user
+				interaction.targetMessage.delete();
+				await interaction.reply({ content: "Purged, for the good of us all.", ephemeral: true });
+			}
+
+			//Enhance - feed an attached image back into img2img
+			else if (interaction.commandName == 'Enhance')
+			{
+				//If no pictures, ignore
+				if(interaction.targetMessage.attachments.size < 1)
+				{
+					await interaction.reply({ content: "Sorry, can't see any pictures there", ephemeral: true });
+					return;
+				}
+				else
+				{
+					//Check HURRICANE is online
+					if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 1000}))
+					{
+						await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+						return;
+					}
+					
+					//Give a placeholder response
+					await interaction.deferReply();
+
+					//Grab the first image attached to the post (oddly deep?)
+					let firstAttach = interaction.targetMessage.attachments.entries().next().value[1];
+
+					//Do some absolute nonsense to turn that in to a base64 string
+					const imageUrl = firstAttach.url;
+					const imageUrlData = await fetch(imageUrl);
+					const buffer = await imageUrlData.arrayBuffer();
+					const stringifiedBuffer = Buffer.from(buffer).toString('base64');
+					const contentType = firstAttach.contentType; //imageUrlData.headers.get('content-type');
+					const imageBas64 = `data:${contentType};base64,${stringifiedBuffer}`;
+
+					//Add a generic prompt
+					let prompt = "masterpiece, best quality";
+
+					//Build up the stable-diffusion-webui api request
+					let payload = {
+						"init_images": [imageBas64],
+						"prompt": prompt,
+						"seed": -1,
+						"steps": 28,
+						"cfg_scale": 12,
+						"width": 512,
+						"height": 300,
+						"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+						"sampler_index": "Euler"
+					};
+					
+					//Send the img2img request (currently hardcoded to HURRICANE)
+					let response = await fetch('http://192.168.1.100:7860/sdapi/v1/img2img', {
+						method: 'post',
+						body: JSON.stringify(payload),
+						headers: {'Content-Type': 'application/json'}
+					});
+					if(!response)
+					{
+						await interaction.editReply("Sorry, I messed up :(");
+						return;
+					}
+
+					//Grab the response and decode it from base64
+					let json = await response.json();
+					let img = Buffer.from(json['images'][0], 'base64');
+
+					//Dump out the image
+					await interaction.editReply({ files: [{ attachment: img }] });
+				}
+			}
+		}
 	}
 	
 	//Button handlers
@@ -1158,8 +1311,8 @@ websrv.get('/ai/:personality',(req,res) => {
 	res.redirect('/ai');
 });
 
-//Web: Test
-websrv.get('/test',(req,res) => {
+//Web: Find pinniversary
+websrv.get('/pins',(req,res) => {
 	client.channels.fetch(config.channel.shed_general).then(channel =>
 	{
 		//Get all pinned messages in The Shed #general
@@ -1192,6 +1345,33 @@ websrv.get('/test',(req,res) => {
 	});
 });
 
+//Web: Tests
+websrv.get('/test',async (req,res) => {
+	let payload = {
+		"prompt": "masterpiece, best quality, megumin, victory pose",
+		"seed": -1,
+		"steps": 28,
+		"cfg_scale": 12,
+		"width": 512,
+		"height": 512,
+		"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+		"sampler_index": "Euler"
+	  };
+	let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
+		method: 'post',
+		body: JSON.stringify(payload),
+		headers: {'Content-Type': 'application/json'}
+	});
+
+	let json = await response.json();
+	let img = Buffer.from(json['images'][0], 'base64');
+
+	res.writeHead(200, {
+		'Content-Type': 'image/png',
+		'Content-Length': img.length
+	  });
+	  res.end(img); 
+});
 
 
 

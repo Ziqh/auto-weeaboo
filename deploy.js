@@ -1,5 +1,6 @@
 //Imports
-import {SlashCommandBuilder} from '@discordjs/builders';
+import {SlashCommandBuilder, ContextMenuCommandBuilder} from '@discordjs/builders';
+import {ApplicationCommandType} from 'discord.js'
 import {REST} from '@discordjs/rest';
 import {Routes} from 'discord-api-types/v10';
 import config from './config.json' assert {type:'json'};
@@ -176,9 +177,22 @@ const commands =
 			.setRequired(false)
 		),
 		
-	//Command: temperature
-	new SlashCommandBuilder().setName('temperature')
-		.setDescription('Ask Auto-Weeaboo what temperature her room is'),
+	//Command: weebimg
+	new SlashCommandBuilder().setName('weebimg')
+		.setDescription('Generate a weeb image')
+		.addStringOption(option =>
+			option.setName('prompt')
+			.setDescription('What you want a weeb image of')
+			.setRequired(true)
+		),
+
+	//Context: enhance
+	new ContextMenuCommandBuilder().setName('Enhance')
+		.setType(ApplicationCommandType.Message),
+	
+	//Context: delete
+	new ContextMenuCommandBuilder().setName('Delete this')
+	.setType(ApplicationCommandType.Message)
 ]
 .map(command => command.toJSON());
 
