@@ -1280,7 +1280,7 @@ client.on('interactionCreate', async interaction =>
 			const imageBas64 = `data:${contentType};base64,${stringifiedBuffer}`;
 
 			//Add a generic prompt
-			let prompt = "masterpiece, best quality, " + interaction.fields.getTextInputValue('prompt');;
+			let prompt = "masterpiece, best quality, " + interaction.fields.getTextInputValue('prompt');
 
 			//Build up the stable-diffusion-webui api request
 			let payload = {
@@ -1312,7 +1312,7 @@ client.on('interactionCreate', async interaction =>
 			let img = Buffer.from(json['images'][0], 'base64');
 
 			//Dump out the image
-			await interaction.editReply({ files: [{ attachment: img }] });
+			await interaction.editReply({ content:interaction.fields.getTextInputValue('prompt'), files:[{ attachment: img }] });
 		}
 	}
 });
