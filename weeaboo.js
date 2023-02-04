@@ -906,11 +906,11 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'weebimg')
 		{
 			//Check HURRICANE is online
-			if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 1000}))
-			{
-				await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
-				return;
-			}
+			// if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 2000}))
+			// {
+			// 	await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+			// 	return;
+			// }
 
 			//Verify the requester exists
 			let requester = getUserDetails(interaction.user.id);
@@ -993,64 +993,32 @@ client.on('interactionCreate', async interaction =>
 					await interaction.reply({ content: "Sorry, can't see any pictures there", ephemeral: true });
 					return;
 				}
-				else
-				{
-					//Check HURRICANE is online
-					if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 1000}))
-					{
-						await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
-						return;
-					}
-					
-					//Give a placeholder response
-					await interaction.deferReply();
 
-					//Grab the first image attached to the post (oddly deep?)
-					let firstAttach = interaction.targetMessage.attachments.entries().next().value[1];
+				//Check HURRICANE is online
+				// if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 1000}))
+				// {
+				// 	await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+				// 	return;
+				// }
+				
+				//Create the form
+				const enhanceForm = new ModalBuilder()
+					.setCustomId('form_enhance' + interaction.targetMessage.id)
+					.setTitle('Auto-Weeaboo Show Rating')
+			
+				//Comment
+				const prompt = new TextInputBuilder()
+					.setCustomId('prompt')
+					.setRequired(true)
+					.setLabel('Enter a prompt to enhance with')
+					.setStyle(TextInputStyle.Short);
+				const row1 = new ActionRowBuilder().addComponents(prompt);
 
-					//Do some absolute nonsense to turn that in to a base64 string
-					const imageUrl = firstAttach.url;
-					const imageUrlData = await fetch(imageUrl);
-					const buffer = await imageUrlData.arrayBuffer();
-					const stringifiedBuffer = Buffer.from(buffer).toString('base64');
-					const contentType = firstAttach.contentType; //imageUrlData.headers.get('content-type');
-					const imageBas64 = `data:${contentType};base64,${stringifiedBuffer}`;
-
-					//Add a generic prompt
-					let prompt = "masterpiece, best quality";
-
-					//Build up the stable-diffusion-webui api request
-					let payload = {
-						"init_images": [imageBas64],
-						"prompt": prompt,
-						"seed": -1,
-						"steps": 28,
-						"cfg_scale": 12,
-						"width": 512,
-						"height": 300,
-						"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
-						"sampler_index": "Euler"
-					};
-					
-					//Send the img2img request (currently hardcoded to HURRICANE)
-					let response = await fetch('http://192.168.1.100:7860/sdapi/v1/img2img', {
-						method: 'post',
-						body: JSON.stringify(payload),
-						headers: {'Content-Type': 'application/json'}
-					});
-					if(!response)
-					{
-						await interaction.editReply("Sorry, I messed up :(");
-						return;
-					}
-
-					//Grab the response and decode it from base64
-					let json = await response.json();
-					let img = Buffer.from(json['images'][0], 'base64');
-
-					//Dump out the image
-					await interaction.editReply({ files: [{ attachment: img }] });
-				}
+				//Add rows to the form
+				enhanceForm.addComponents(row1);
+				
+				//Present to the user
+				await interaction.showModal(enhanceForm);
 			}
 		}
 	}
@@ -1289,6 +1257,63 @@ client.on('interactionCreate', async interaction =>
 				await interaction.editReply(requester.name + ' just rated ' + movie.name + '\n> ' + comment + '\n> Rated: ' + rating + '\n' + completion.data.choices[0].text.replace(/(\r\n|\n|\r)/gm, ''));
 			}
 		}
+
+		//Receive an enhancement request
+		if (interaction.customId.startsWith('form_enhance'))
+		{
+			//Give a placeholder response
+			await interaction.deferReply();
+
+			//Extract the message ID and find the message object from it
+			const messageID = interaction.customId.substr(12);
+			const message = await interaction.channel.messages.fetch(messageID);
+
+			//Grab the first image attached to the post (oddly deep?)
+			let firstAttach = message.attachments.entries().next().value[1];
+			
+			//Do some absolute nonsense to turn that in to a base64 string
+			const imageUrl = firstAttach.url;
+			const imageUrlData = await fetch(imageUrl);
+			const buffer = await imageUrlData.arrayBuffer();
+			const stringifiedBuffer = Buffer.from(buffer).toString('base64');
+			const contentType = firstAttach.contentType; //imageUrlData.headers.get('content-type');
+			const imageBas64 = `data:${contentType};base64,${stringifiedBuffer}`;
+
+			//Add a generic prompt
+			let prompt = "masterpiece, best quality, " + interaction.fields.getTextInputValue('prompt');;
+
+			//Build up the stable-diffusion-webui api request
+			let payload = {
+				"init_images": [imageBas64],
+				"prompt": prompt,
+				"seed": -1,
+				"steps": 28,
+				"cfg_scale": 12,
+				"width": 512,
+				"height": 300,
+				"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+				"sampler_index": "Euler"
+			};
+			
+			//Send the img2img request (currently hardcoded to HURRICANE)
+			let response = await fetch('http://192.168.1.100:7860/sdapi/v1/img2img', {
+				method: 'post',
+				body: JSON.stringify(payload),
+				headers: {'Content-Type': 'application/json'}
+			});
+			if(!response)
+			{
+				await interaction.editReply("Sorry, I messed up :(");
+				return;
+			}
+
+			//Grab the response and decode it from base64
+			let json = await response.json();
+			let img = Buffer.from(json['images'][0], 'base64');
+
+			//Dump out the image
+			await interaction.editReply({ files: [{ attachment: img }] });
+		}
 	}
 });
 
@@ -1299,8 +1324,6 @@ websrv.get('/ai',(req,res) => {
 	htmlString += '<body><div style="max-width:500px;padding:20px;">';
 	htmlString += 'Today I feel: <b>' + ai_setting + '</b><br><br>';
 	htmlString += '<br><br><a href="/ai/sassy">Sassy</a> <a href="/ai/kind">Kind</a> <a href="/ai/mean">Mean</a> <a href="/ai/shy">Shy</a> <a href="/ai/stronk">Stronk</a> <a href="/ai/flirty">Flirty</a> <a href="/ai/dumb">Dumb</a>';
-    //htmlString += '<br><select onchange="if(this.value) window.location.href=this.value" required><option value="" selected>Select…</option><option value="/ai/sassy">Sassy</option><option value="/ai/kind">Kind</option><option value="/ai/mean">Mean</option><option value="/ai/shy">Shy</option><option value="/ai/stronk">Stronk</option><option value="/ai/flirty">Flirty</option><option value="/ai/dumb">Dumb</option></select>';
-	//config.personalities.forEach(personality => htmlString+=`<a href="/ai/${personality}">${personality}</a> `)
 	htmlString += '</div></body>';
 	res.send(htmlString);
 	
