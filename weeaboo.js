@@ -23,7 +23,6 @@ import fetch from 'node-fetch';
 import bcrypt from 'bcryptjs';
 import express from 'express';
 import {Configuration, OpenAIApi} from 'openai';
-import isReachable from 'is-reachable';
 
 //Local DB config
 const db = new Database(config.db.watchtrack, {readonly:false, fileMustExist:true});
@@ -906,11 +905,15 @@ client.on('interactionCreate', async interaction =>
 		else if (interaction.commandName == 'weebimg')
 		{
 			//Check HURRICANE is online
-			// if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 2000}))
-			// {
-			// 	await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
-			// 	return;
-			// }
+			try
+			{
+				await fetch('http://192.168.1.100:7860/app_id', {method:"Get", signal:AbortSignal.timeout(1000)});
+			}
+			catch (err)
+			{
+				await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+				return;
+			}
 
 			//Verify the requester exists
 			let requester = getUserDetails(interaction.user.id);
@@ -995,11 +998,15 @@ client.on('interactionCreate', async interaction =>
 				}
 
 				//Check HURRICANE is online
-				// if (!await isReachable('http://192.168.1.100:7860/app_id', {timeout: 1000}))
-				// {
-				// 	await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
-				// 	return;
-				// }
+				try
+				{
+					await fetch('http://192.168.1.100:7860/app_id', {method:"Get", signal:AbortSignal.timeout(1000)});
+				}
+				catch (err)
+				{
+					await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+					return;
+				}
 				
 				//Create the form
 				const enhanceForm = new ModalBuilder()
