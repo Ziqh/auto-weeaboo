@@ -184,15 +184,24 @@ const commands =
 			option.setName('prompt')
 			.setDescription('What you want a weeb image of')
 			.setRequired(true)
+		)
+		.addStringOption(option =>
+				option.setName('negative')
+				.setDescription('Things you do NOT want a weeb image of')
+				.setRequired(false)
 		),
 
 	//Context: enhance
 	new ContextMenuCommandBuilder().setName('Enhance')
 		.setType(ApplicationCommandType.Message),
 	
-	//Context: delete
+	//Context: delete this
 	new ContextMenuCommandBuilder().setName('Delete this')
-	.setType(ApplicationCommandType.Message)
+	.setType(ApplicationCommandType.Message),
+
+	//Context: draw this
+	new ContextMenuCommandBuilder().setName('Draw this')
+		.setType(ApplicationCommandType.Message)
 ]
 .map(command => command.toJSON());
 

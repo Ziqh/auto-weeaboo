@@ -936,6 +936,10 @@ client.on('interactionCreate', async interaction =>
 			let prompt = interaction.options.get('prompt').value;
 			prompt = "masterpiece, best quality, " + prompt;
 
+			let negative = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw";
+			if (interaction.options.get('negative') != null)
+				negative += ', ' + interaction.options.get('negative').value;
+
 			//Build up the stable-diffusion-webui api request
 			let payload = {
 				"prompt": prompt,
@@ -944,10 +948,10 @@ client.on('interactionCreate', async interaction =>
 				"cfg_scale": 12,
 				"width": 512,
 				"height": 300,
-				"negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw",
+				"negative_prompt": negative,
 				"sampler_index": "Euler"
 			  };
-			
+
 			//Send the txt2img request (currently hardcoded to HURRICANE)
 			let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
 				method: 'post',
@@ -990,6 +994,19 @@ client.on('interactionCreate', async interaction =>
 			//Enhance - feed an attached image back into img2img
 			else if (interaction.commandName == 'Enhance')
 			{
+				//Verify the requester exists
+				let requester = getUserDetails(interaction.user.id);
+				if(typeof requester == 'undefined')
+				{
+					await interaction.reply({ content: say_unknownRequester, ephemeral: true });
+					return;
+				}
+				//Verify requester has access
+				else if (requester.access < Access.comment)
+				{
+					await interaction.reply({ content: say_noAccess, ephemeral: true });
+					return;
+				}
 				//If no pictures, ignore
 				if(interaction.targetMessage.attachments.size < 1)
 				{
@@ -1026,6 +1043,75 @@ client.on('interactionCreate', async interaction =>
 				
 				//Present to the user
 				await interaction.showModal(enhanceForm);
+			}
+
+			//Draw this - Trigger a weebimg from a message
+			if (interaction.commandName == 'Draw this')
+			{
+				//Check HURRICANE is online
+				try
+				{
+					await fetch('http://192.168.1.100:7860/app_id', {method:"Get", signal:AbortSignal.timeout(1000)});
+				}
+				catch (err)
+				{
+					await interaction.reply({ content: "Sorry, can't find my pen", ephemeral: true });
+					return;
+				}
+
+				//Verify the requester exists
+				let requester = getUserDetails(interaction.user.id);
+				if(typeof requester == 'undefined')
+				{
+					await interaction.reply({ content: say_unknownRequester, ephemeral: true });
+					return;
+				}
+				//Verify requester has access
+				else if (requester.access < Access.comment)
+				{
+					await interaction.reply({ content: say_noAccess, ephemeral: true });
+					return;
+				}
+				
+				//Give a placeholder response
+				await interaction.deferReply();
+
+				//Get requested prompt
+				let prompt = interaction.targetMessage.content;
+				prompt = "masterpiece, best quality, " + prompt;
+
+				let negative = "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, artist name, nsfw";
+
+				//Build up the stable-diffusion-webui api request
+				let payload = {
+					"prompt": prompt,
+					"seed": -1,
+					"steps": 28,
+					"cfg_scale": 12,
+					"width": 512,
+					"height": 300,
+					"negative_prompt": negative,
+					"sampler_index": "Euler"
+				};
+
+				//Send the txt2img request (currently hardcoded to HURRICANE)
+				let response = await fetch('http://192.168.1.100:7860/sdapi/v1/txt2img', {
+					method: 'post',
+					body: JSON.stringify(payload),
+					headers: {'Content-Type': 'application/json'}
+				});
+				if(!response)
+				{
+					await interaction.editReply("Sorry, I messed up :(");
+					return;
+				}
+
+				//Grab the response and decode it from base64
+				let json = await response.json();
+				let img = Buffer.from(json['images'][0], 'base64');
+
+				//Dump out the image
+				await interaction.editReply({ files: [{ attachment: img }] });
 			}
 		}
 	}
