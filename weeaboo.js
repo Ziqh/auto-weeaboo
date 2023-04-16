@@ -475,7 +475,7 @@ client.on('interactionCreate', async interaction =>
 				else if(setStatus == 'watching')
 				{
 					//Mark the show as dropped in the database
-					db.prepare('UPDATE shows SET status=\'dropped\' WHERE shortName=?').run(show.shortName);
+					db.prepare('UPDATE shows SET status=\'watching\' WHERE shortName=?').run(show.shortName);
 					
 					//Send the message
 					await interaction.reply({ content: 'Neat! ' + show.fullName + ' is now **watching**!', components: [row1] });
